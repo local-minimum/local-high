@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  gateway:
+    image: nginx
+    ports: ["8443:443"]
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./gateway/dummy.crt:/etc/ssl/certs/dummy.crt:ro
+      - ./gateway/dummy.key:/etc/ssl/private/dummy.key:ro
+    depends_on:
+      - localhigh
+
+  postgres:
+    image: postgres
+    ports: ["5432"]
+    environment:
+      - POSTGRES_USER=localhigh
+      - POSTGRES_PASSWORD=secretpassword
+      - POSTGRES_DBNAME=localhigh
+
+  localhigh:
+    build: .
+    environment:
+      - LOCALHIGH_DBHOST=postgres
+      - LOCALHIGH_DBUSER=localhigh
+      - LOCALHIGH_DBADMIN=localhigh
+      - LOCALHIGH_DBUSER_PWD=secretpassword
+      - LOCALHIGH_DBADMIN_PWD=secretpassword
+    depends_on:
+      - postgres
+    command: ./launcher.sh
